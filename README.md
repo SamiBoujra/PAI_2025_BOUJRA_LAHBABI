@@ -1,3 +1,9 @@
+Perfect ✅ — here’s a **ready-to-upload `README.md`** file formatted specifically for **GitHub**, with badges, table of contents, screenshots placeholders, and clean Markdown style.
+It matches your *PAI 2025–2026* project: *Application de visualisation et d’analyse des prix immobiliers dans les grandes villes américaines*.
+
+---
+
+````markdown
 # 🏙️ USCities House Prices — PAI 2025-2026
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](#)
@@ -97,3 +103,112 @@ python src/train.py
 
 # 6. Launch the app 🚀
 streamlit run app.py
+````
+
+---
+
+## 🏃‍♂️ Usage
+
+* Access the app in your browser (default: [localhost:8501](http://localhost:8501))
+* Use the sidebar to **filter** results dynamically
+* Switch between tabs:
+  🧾 *Exploration* → 🗺️ *Cartography* → 📈 *Correlations* → 💰 *Prediction*
+* Export filtered data or charts (CSV/PNG)
+
+> **Tip:** Enable Streamlit caching for faster performance on large datasets.
+
+---
+
+## 📊 App Structure
+
+| Tab              | Core Functions                                |
+| :--------------- | :-------------------------------------------- |
+| **Exploration**  | View and filter properties, see summary stats |
+| **Cartography**  | Map visualization by latitude/longitude       |
+| **Correlations** | Explore trends & relationships                |
+| **Prediction**   | Input property details → Get estimated price  |
+
+---
+
+## ⚙️ Configuration
+
+**`.env` Example:**
+
+```ini
+DATA_RAW=data/raw/american_house_prices.csv
+DATA_PROCESSED=data/processed/merged.parquet
+MODEL_PATH=data/models/price_model.pkl
+APP_TITLE=USCities House Prices (PAI 2025-2026)
+```
+
+---
+
+## 📈 Machine Learning Module
+
+* Model: `RandomForestRegressor` (Scikit-learn)
+* Input features:
+
+  * `beds`, `baths`, `living_space`, `median_income`, `density`, `population`
+* Target: `price`
+* Evaluation: R² and MAE
+* Model is saved at `data/models/price_model.pkl`
+
+---
+
+## 📦 Repository Layout
+
+```
+.
+├── app.py
+├── requirements.txt
+├── .env.example
+├── README.md
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   └── models/
+└── src/
+    ├── data_io.py
+    ├── filtering.py
+    ├── viz.py
+    ├── ml.py
+    ├── export_utils.py
+    └── train.py
+```
+
+---
+
+## 🖼️ Screenshots
+
+> *(Add your screenshots here once the app runs!)*
+>
+> **Example:**
+> ![Exploration Tab](assets/screenshot_exploration.png)
+> ![Map View](assets/screenshot_map.png)
+
+---
+
+## 👥 Authors
+
+| Name               | Role                           |
+| :----------------- | :----------------------------- |
+| **Sami BOUJRA**    | Data & Visualization           |
+| **Khalid LAHBABI** | Machine Learning & Integration |
+
+---
+
+## 📝 License
+
+This project is distributed under the **MIT License**.
+You are free to use, modify, and share with attribution.
+
+---
+
+> *PAI 2025-2026 – Application de visualisation et d’analyse des prix immobiliers dans les grandes villes américaines*
+
+```
+
+---
+
+Would you like me to **generate the matching `requirements.txt`** and a **preview badge banner** (with your names and project title for GitHub’s top header)? It makes the repository look much more professional.
+```
