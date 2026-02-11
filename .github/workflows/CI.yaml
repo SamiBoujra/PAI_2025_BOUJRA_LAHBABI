@@ -21,7 +21,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
-          python -m pip install pytest numpy pandas matplotlib joblib scikit-learn xgboost folium usaddress PySide6 PySide6-WebEngine
+          python -m pip install pytest numpy pandas matplotlib joblib scikit-learn xgboost folium usaddress PySide6
 
       - name: Syntax check (compileall)
         run: |
