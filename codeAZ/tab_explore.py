@@ -1,4 +1,4 @@
-# tab_explore.py
+﻿# tab_explore.py
 from __future__ import annotations
 
 from pathlib import Path
@@ -24,7 +24,7 @@ EXPECTED_COLUMNS = [
     "Median Household Income", "Latitude", "Longitude",
 ]
 
-# --------------------- Modèle pandas -> Qt --------------------
+# --------------------- ModÃ¨le pandas -> Qt --------------------
 class PandasModel(QAbstractTableModel):
     def __init__(self, df: pd.DataFrame):
         super().__init__()
@@ -182,7 +182,7 @@ class ExplorationTab(QWidget):
 
         self.spin_min_space = QDoubleSpinBox(); self.spin_min_space.setRange(0, 1e6); self.spin_min_space.setPrefix("Min "); self.spin_min_space.setDecimals(0)
         self.spin_max_space = QDoubleSpinBox(); self.spin_max_space.setRange(0, 1e6); self.spin_max_space.setPrefix("Max "); self.spin_max_space.setDecimals(0)
-        self.filters_layout.addRow(QLabel("Surface (ft²) :"), self._row(self.spin_min_space, self.spin_max_space))
+        self.filters_layout.addRow(QLabel("Surface (ftÂ²) :"), self._row(self.spin_min_space, self.spin_max_space))
 
         self.spin_min_beds = QSpinBox(); self.spin_min_beds.setRange(0, 50); self.spin_min_beds.setPrefix("Min ")
         self.spin_max_beds = QSpinBox(); self.spin_max_beds.setRange(0, 50); self.spin_max_beds.setPrefix("Max ")
@@ -190,24 +190,24 @@ class ExplorationTab(QWidget):
 
         self.spin_min_income = QDoubleSpinBox(); self.spin_min_income.setRange(0, 1e7); self.spin_min_income.setPrefix("Min $"); self.spin_min_income.setDecimals(0)
         self.spin_max_income = QDoubleSpinBox(); self.spin_max_income.setRange(0, 1e7); self.spin_max_income.setPrefix("Max $"); self.spin_max_income.setDecimals(0)
-        self.filters_layout.addRow(QLabel("Revenu médian ($) :"), self._row(self.spin_min_income, self.spin_max_income))
+        self.filters_layout.addRow(QLabel("Revenu mÃ©dian ($) :"), self._row(self.spin_min_income, self.spin_max_income))
 
-        self.edit_city = QLineEdit(); self.edit_city.setPlaceholderText("Contient… (ex: New York)")
+        self.edit_city = QLineEdit(); self.edit_city.setPlaceholderText("Contientâ€¦ (ex: New York)")
         self.filters_layout.addRow(QLabel("Ville (contient) :"), self.edit_city)
 
         self.combo_state = QComboBox(); self.combo_state.addItem("")
         if "State" in self.df.columns:
             states = sorted(map(str, self.df["State"].dropna().unique()))
             self.combo_state.addItems(states)
-        self.filters_layout.addRow(QLabel("État (exact) :"), self.combo_state)
+        self.filters_layout.addRow(QLabel("Ã‰tat (exact) :"), self.combo_state)
 
-        self.edit_search = QLineEdit(); self.edit_search.setPlaceholderText("Recherche dans Address…")
+        self.edit_search = QLineEdit(); self.edit_search.setPlaceholderText("Recherche dans Addressâ€¦")
         self.filters_layout.addRow(QLabel("Recherche (Address) :"), self.edit_search)
 
         self.btn_apply = QPushButton("Appliquer les filtres")
         self.btn_apply.clicked.connect(self.apply_filters)
 
-        self.btn_reset = QPushButton("Réinitialiser")
+        self.btn_reset = QPushButton("RÃ©initialiser")
         self.btn_reset.clicked.connect(self.reset_filters)
 
         row_btns = QWidget()
@@ -218,9 +218,9 @@ class ExplorationTab(QWidget):
         self.filters_layout.addRow(row_btns)
 
         self.lbl_count = QLabel("")
-        self.filters_layout.addRow(QLabel("Résultats :"), self.lbl_count)
+        self.filters_layout.addRow(QLabel("RÃ©sultats :"), self.lbl_count)
 
-        self.btn_export = QPushButton("Exporter CSV (filtré)")
+        self.btn_export = QPushButton("Exporter CSV (filtrÃ©)")
         self.btn_export.clicked.connect(self.export_csv)
         self.filters_layout.addRow(self.btn_export)
 
@@ -283,13 +283,13 @@ class ExplorationTab(QWidget):
         return df_all.iloc[rows].copy()
 
     def export_csv(self):
-        path, _ = QFileDialog.getSaveFileName(self, "Exporter CSV filtré", "filtered_exploration.csv", "CSV (*.csv)")
+        path, _ = QFileDialog.getSaveFileName(self, "Exporter CSV filtrÃ©", "filtered_exploration.csv", "CSV (*.csv)")
         if not path:
             return
         df_filtered = self._filtered_dataframe()
         try:
             df_filtered.to_csv(path, index=False)
-            QMessageBox.information(self, "Export CSV", f"Export réussi vers:\n{path}")
+            QMessageBox.information(self, "Export CSV", f"Export rÃ©ussi vers:\n{path}")
         except Exception as e:
             QMessageBox.critical(self, "Export CSV", f"Erreur d'export:\n{e}")
 
@@ -304,7 +304,7 @@ def load_dataframe(path: Path) -> pd.DataFrame:
 
 class ExplorationTabWidget(QWidget):
     """
-    Wrapper 'onglet' qui charge le CSV par défaut.
+    Wrapper 'onglet' qui charge le CSV par dÃ©faut.
     Dans main.py tu importes ExplorationTabWidget et tu fais tabs.addTab(ExplorationTabWidget(), "Exploration")
     """
     def __init__(self):

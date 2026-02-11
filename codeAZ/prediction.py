@@ -195,9 +195,9 @@ class HousingPredictorUI(QWidget):
 
 def load_everything():
     from pathlib import Path
-MODEL_PATH = Path(__file__).resolve().parent.parent / "housing_pipe.joblib"
+        MODEL_PATH = Path(__file__).resolve().parent.parent / "housing_pipe.joblib"
     from pathlib import Path
-DATA_PATH = Path(__file__).resolve().parent.parent / "American_Housing_Data_20231209.csv"
+        DATA_PATH = Path(__file__).resolve().parent.parent / "American_Housing_Data_20231209.csv"
 
     bundle = joblib.load(MODEL_PATH)
     pipe = bundle["pipe"]

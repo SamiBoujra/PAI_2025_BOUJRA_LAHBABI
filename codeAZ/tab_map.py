@@ -1,4 +1,4 @@
-# tab_map.py
+﻿# tab_map.py
 import pandas as pd
 import folium
 from folium.plugins import FastMarkerCluster
@@ -23,7 +23,7 @@ def fmt_price(x):
 
 
 class CartographyDynamic(QWidget):
-    """Carte Folium (HTML) mise à jour sur action (bouton Appliquer / Enter)."""
+    """Carte Folium (HTML) mise Ã  jour sur action (bouton Appliquer / Enter)."""
 
     def __init__(self, df: pd.DataFrame):
         super().__init__()
@@ -49,7 +49,7 @@ class CartographyDynamic(QWidget):
         self.spin_max_beds.setPrefix("Max Beds ")
 
         self.edit_city = QLineEdit()
-        self.edit_city.setPlaceholderText("Ville contient… (Entrée pour appliquer)")
+        self.edit_city.setPlaceholderText("Ville contientâ€¦ (EntrÃ©e pour appliquer)")
         self.edit_city.returnPressed.connect(self.update_map)
 
         self.combo_state = QComboBox()
@@ -72,7 +72,7 @@ class CartographyDynamic(QWidget):
         form.addRow("Prix ($)", self._row(self.spin_min_price, self.spin_max_price))
         form.addRow("Chambres (Beds)", self._row(self.spin_min_beds, self.spin_max_beds))
         form.addRow("Ville", self.edit_city)
-        form.addRow("État", self.combo_state)
+        form.addRow("Ã‰tat", self.combo_state)
 
         lay = QVBoxLayout(self)
         lay.addLayout(form)
@@ -83,10 +83,10 @@ class CartographyDynamic(QWidget):
         row_btn.addStretch(1)
         lay.addLayout(row_btn)
 
-        lay.addWidget(QLabel("Carte des biens filtrés :"))
+        lay.addWidget(QLabel("Carte des biens filtrÃ©s :"))
         lay.addWidget(self.web, stretch=1)
 
-        # Génération initiale
+        # GÃ©nÃ©ration initiale
         self.update_map()
 
     def _row(self, *widgets):
@@ -128,10 +128,10 @@ class CartographyDynamic(QWidget):
         return df
 
     def update_map(self):
-        """Met à jour la carte à partir du DataFrame filtré (FAST cluster)."""
+        """Met Ã  jour la carte Ã  partir du DataFrame filtrÃ© (FAST cluster)."""
         try:
             df_f = self.filtered_df()
-            self.lbl_count.setText(f"{len(df_f):,} résultats")
+            self.lbl_count.setText(f"{len(df_f):,} rÃ©sultats")
 
             m = folium.Map(location=[39.5, -98.35], zoom_start=4, tiles="CartoDB positron")
 
@@ -154,7 +154,7 @@ class CartographyDynamic(QWidget):
                     f"{row.get('City','')}, {row.get('State','')} ({row.get('Zip Code','')})<br>"
                     f"Price: {fmt_price(row.get('Price', 0))}<br>"
                     f"Beds: {row.get('Beds','?')} | Baths: {row.get('Baths','?')} | "
-                    f"Living Space: {row.get('Living Space','?')} ft²"
+                    f"Living Space: {row.get('Living Space','?')} ftÂ²"
                 )
 
                 points.append([lat, lon])
@@ -169,7 +169,7 @@ class CartographyDynamic(QWidget):
 
 
 class MapTab(QWidget):
-    """Onglet Cartographie, prêt pour main.py"""
+    """Onglet Cartographie, prÃªt pour main.py"""
     def __init__(self):
         super().__init__()
         df = pd.read_csv(DATA_PATH)

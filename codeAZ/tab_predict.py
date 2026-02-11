@@ -11,14 +11,12 @@ from PySide6.QtCore import Qt
 
 from model import parse_us_address, predict_interval_from_constraints
 
-from pathlib import Path
-MODEL_PATH = Path(__file__).resolve().parent.parent / "housing_pipe.joblib"
-from pathlib import Path
-DATA_PATH = Path(__file__).resolve().parent.parent / "American_Housing_Data_20231209.csv"
+MODEL_PATH = r"C:\Users\pc\Downloads\projet PAI\housing_pipe.joblib"
+DATA_PATH  = r"C:\Users\pc\Downloads\projet PAI\projet PAI\American_Housing_Data_20231209.csv"
 
 
 def _money(x):
-    return "â€”" if x is None else f"{x:,.0f} $"
+    return "—" if x is None else f"{x:,.0f} $"
 
 
 def _opt_int(s):
@@ -82,9 +80,9 @@ class PredictorTab(QWidget):
         # Output
         out = QGroupBox("Result")
         f = QFormLayout(out)
-        self.lbl_med = QLabel("â€”")
-        self.lbl_low = QLabel("â€”")
-        self.lbl_high = QLabel("â€”")
+        self.lbl_med = QLabel("—")
+        self.lbl_low = QLabel("—")
+        self.lbl_high = QLabel("—")
         f.addRow("Median", self.lbl_med)
         f.addRow("Low (80%)", self.lbl_low)
         f.addRow("High (80%)", self.lbl_high)
