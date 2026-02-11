@@ -1,4 +1,4 @@
-# app.py
+﻿# app.py
 import sys
 import joblib
 import pandas as pd
@@ -15,7 +15,7 @@ from model import parse_us_address, predict_interval_from_constraints
 
 def _money(x):
     if x is None or (isinstance(x, float) and (np.isnan(x) or np.isinf(x))):
-        return "—"
+        return "â€”"
     return f"{x:,.0f} $"
 
 
@@ -101,10 +101,10 @@ class HousingPredictorUI(QWidget):
         g_out = QGroupBox("Result")
         out_layout = QFormLayout(g_out)
 
-        self.used_rows_lbl = QLabel("—")
-        self.med_lbl = QLabel("—")
-        self.low_lbl = QLabel("—")
-        self.high_lbl = QLabel("—")
+        self.used_rows_lbl = QLabel("â€”")
+        self.med_lbl = QLabel("â€”")
+        self.low_lbl = QLabel("â€”")
+        self.high_lbl = QLabel("â€”")
 
         for lbl in [self.used_rows_lbl, self.med_lbl, self.low_lbl, self.high_lbl]:
             lbl.setTextInteractionFlags(Qt.TextSelectableByMouse)
@@ -187,15 +187,17 @@ class HousingPredictorUI(QWidget):
         self.baths_edit.clear()
         self.living_edit.clear()
         self.zpop_edit.clear()
-        self.used_rows_lbl.setText("—")
-        self.med_lbl.setText("—")
-        self.low_lbl.setText("—")
-        self.high_lbl.setText("—")
+        self.used_rows_lbl.setText("â€”")
+        self.med_lbl.setText("â€”")
+        self.low_lbl.setText("â€”")
+        self.high_lbl.setText("â€”")
 
 
 def load_everything():
-    MODEL_PATH = r"C:\Users\pc\Downloads\projet PAI\housing_pipe.joblib"
-    DATA_PATH  = r"C:\Users\pc\Downloads\projet PAI\projet PAI\American_Housing_Data_20231209.csv"
+    from pathlib import Path
+MODEL_PATH = Path(__file__).resolve().parent.parent / "housing_pipe.joblib"
+    from pathlib import Path
+DATA_PATH = Path(__file__).resolve().parent.parent / "American_Housing_Data_20231209.csv"
 
     bundle = joblib.load(MODEL_PATH)
     pipe = bundle["pipe"]

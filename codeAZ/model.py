@@ -1,4 +1,4 @@
-import pandas as pd
+﻿import pandas as pd
 import numpy as np
 
 from sklearn.model_selection import train_test_split
@@ -17,7 +17,7 @@ import usaddress
 def parse_us_address(addr: str) -> dict:
     addr = addr.strip()
     # remove trailing country text if present
-    addr = re.sub(r",\s*États-Unis\s*$", "", addr, flags=re.IGNORECASE)
+    addr = re.sub(r",\s*Ã‰tats-Unis\s*$", "", addr, flags=re.IGNORECASE)
     addr = re.sub(r",\s*United States\s*$", "", addr, flags=re.IGNORECASE)
 
     tagged, _ = usaddress.tag(addr)
@@ -91,7 +91,9 @@ def predict_interval_from_constraints(
 
 
 # 1) Charger
-df = pd.read_csv(r"C:\Users\pc\Downloads\projet PAI\projet PAI\American_Housing_Data_20231209.csv")
+from pathlib import Path
+DATA_PATH = Path(__file__).resolve().parent.parent / "American_Housing_Data_20231209.csv"
+df = pd.read_csv(DATA_PATH)
 
 # 2) Nettoyage minimal
 df = df.copy()
@@ -104,7 +106,7 @@ if "Zip Code" in df.columns:
         .str.replace(r"\.0$", "", regex=True)
     )
 
-# Convertir colonnes numériques possibles (adapte si besoin)
+# Convertir colonnes numÃ©riques possibles (adapte si besoin)
 for col in ["Price", "Beds", "Baths", "Living Space", "Zip Code Population"]:
     if col in df.columns:
         df[col] = pd.to_numeric(df[col], errors="coerce")
@@ -116,7 +118,7 @@ df = df.dropna(subset=["Price", "Beds", "Baths", "Living Space", "City", "State"
 target = "Price"
 feature_cols = ["Beds", "Baths", "Living Space", "City", "State"]
 
-# Optionnel : ajouter Zip Code / population si présents
+# Optionnel : ajouter Zip Code / population si prÃ©sents
 if "Zip Code" in df.columns:
     feature_cols.append("Zip Code")
 if "Zip Code Population" in df.columns:
@@ -125,12 +127,12 @@ if "Zip Code Population" in df.columns:
 X = df[feature_cols]
 y = df[target]
 
-# (Option très recommandée) prédire log(prix)
+# (Option trÃ¨s recommandÃ©e) prÃ©dire log(prix)
 use_log = True
 if use_log:
     y = np.log1p(y)
 
-# 4) Colonnes numériques / catégorielles
+# 4) Colonnes numÃ©riques / catÃ©gorielles
 num_cols = [c for c in feature_cols if c in ["Beds", "Baths", "Living Space", "Zip Code Population"]]
 cat_cols = [c for c in feature_cols if c not in num_cols]
 
@@ -141,7 +143,7 @@ preprocess = ColumnTransformer(
     ]
 )
 
-# 5) Modèle XGBoost
+# 5) ModÃ¨le XGBoost
 model = XGBRegressor(
     n_estimators=800,
     learning_rate=0.05,
@@ -164,10 +166,10 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# 7) Entraîner
+# 7) EntraÃ®ner
 pipe.fit(X_train, y_train)
 
-# 8) Prédire
+# 8) PrÃ©dire
 pred = pipe.predict(X_test)
 
 # Revenir en dollars si log
@@ -178,7 +180,7 @@ else:
     y_test_d = y_test
     pred_d = pred
 
-# 9) Évaluer
+# 9) Ã‰valuer
 mae = mean_absolute_error(y_test_d, pred_d)
 mse = mean_squared_error(y_test_d, pred_d)
 rmse = np.sqrt(mse)
@@ -186,9 +188,9 @@ r2 = r2_score(y_test_d, pred_d)
 
 print(f"MAE  : {mae:,.0f} $")
 print(f"RMSE : {rmse:,.0f} $")
-print(f"R²   : {r2:.3f}")
+print(f"RÂ²   : {r2:.3f}")
 
-addr = "100 W 2nd St, Boston, MA 02127, États-Unis"
+addr = "100 W 2nd St, Boston, MA 02127, Ã‰tats-Unis"
 info = parse_us_address(addr)  # or parse_us_address(addr)
 
 constraints = {
@@ -211,7 +213,8 @@ print(low, med, high, "based on", n_used, "matching rows")
 
 import joblib
 
-MODEL_PATH = r"C:\Users\pc\Downloads\projet PAI\housing_pipe.joblib"
+from pathlib import Path
+MODEL_PATH = Path(__file__).resolve().parent.parent / "housing_pipe.joblib"
 
 joblib.dump(
     {
