@@ -15,7 +15,8 @@ from PySide6.QtWidgets import (
 )
 
 # --------------------------- Config ---------------------------
-DATA_PATH = Path(r"C:\Users\pc\Downloads\projet PAI\projet PAI\American_Housing_Data_20231209.csv")
+from pathlib import Path
+DATA_PATH = Path(__file__).resolve().parent.parent / "American_Housing_Data_20231209.csv"
 
 EXPECTED_COLUMNS = [
     "Zip Code", "Price", "Beds", "Baths", "Living Space", "Address",
