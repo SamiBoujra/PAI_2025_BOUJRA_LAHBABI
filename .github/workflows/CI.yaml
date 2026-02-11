@@ -24,54 +24,52 @@ jobs:
           python -m pip install pytest numpy pandas matplotlib joblib scikit-learn xgboost folium usaddress PySide6 PySide6-WebEngine
 
       - name: Syntax check (compileall)
-        run: python -m compileall -q codeAZ
+        run: |
+          python -m compileall -q codeAZ
 
       - name: Smoke imports + API checks
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
-          python - <<EOF
-import importlib
+          python - <<'PY'
+          import importlib
 
-modules = [
-    "codeAZ.apli",
-    "codeAZ.tab_corr",
-    "codeAZ.tab_explore",
-    "codeAZ.tab_map",
-    "codeAZ.tab_predict",
-    "codeAZ.prediction",
-    "codeAZ.model",
-]
+          modules = [
+              "codeAZ.apli",
+              "codeAZ.tab_corr",
+              "codeAZ.tab_explore",
+              "codeAZ.tab_map",
+              "codeAZ.tab_predict",
+              "codeAZ.prediction",
+              "codeAZ.model",
+          ]
 
-failed = []
-for m in modules:
-    try:
-        importlib.import_module(m)
-        print(f"[OK] import {m}")
-    except Exception as e:
-        failed.append((m, repr(e)))
-        print(f"[FAIL] import {m}: {e!r}")
+          failed = []
+          for m in modules:
+              try:
+                  importlib.import_module(m)
+                  print(f"[OK] import {m}")
+              except Exception as e:
+                  failed.append((m, repr(e)))
+                  print(f"[FAIL] import {m}: {e!r}")
 
-def must_have(modname, names):
-    mod = importlib.import_module(modname)
-    for n in names:
-        if not hasattr(mod, n):
-            raise AssertionError(f"{modname} missing: {n}")
+          def must_have(modname, names):
+              mod = importlib.import_module(modname)
+              for n in names:
+                  if not hasattr(mod, n):
+                      raise AssertionError(f"{modname} missing: {n}")
 
-must_have("codeAZ.tab_corr", ["CorrelationTab"])
-must_have("codeAZ.tab_map", ["MapTab", "CartographyDynamic"])
-must_have("codeAZ.tab_explore", ["ExplorationTabWidget", "ExplorationTab", "PandasModel", "RealEstateFilterProxy"])
-must_have("codeAZ.tab_predict", ["PredictorTab"])
+          must_have("codeAZ.tab_corr", ["CorrelationTab"])
+          must_have("codeAZ.tab_map", ["MapTab", "CartographyDynamic"])
+          must_have("codeAZ.tab_explore", ["ExplorationTabWidget", "ExplorationTab", "PandasModel", "RealEstateFilterProxy"])
+          must_have("codeAZ.tab_predict", ["PredictorTab"])
 
-# optional (uncomment if these exist for sure)
-# must_have("codeAZ.model", ["parse_us_address", "predict_interval_from_constraints"])
+          if failed:
+              raise SystemExit(f"Import failures: {failed}")
 
-if failed:
-    raise SystemExit(f"Import failures: {failed}")
+          print("All imports and API checks passed.")
+          PY
 
-print("All imports and API checks passed.")
-EOF
-
-      - name: Run pytest (if tests exist)
+      - name: Run pytest
         run: |
           pytest -q || echo "No tests yet"
