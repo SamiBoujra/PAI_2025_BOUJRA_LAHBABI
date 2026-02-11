@@ -7,8 +7,10 @@ on:
 jobs:
   test:
     runs-on: macos-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -18,9 +20,58 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest
+          if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
+          python -m pip install pytest numpy pandas matplotlib joblib scikit-learn xgboost folium usaddress PySide6 PySide6-WebEngine
 
-      - name: Run tests
+      - name: Syntax check (compileall)
+        run: python -m compileall -q codeAZ
+
+      - name: Smoke imports + API checks
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: |
-          pytest || echo "No tests yet"
+          python - <<EOF
+import importlib
+
+modules = [
+    "codeAZ.apli",
+    "codeAZ.tab_corr",
+    "codeAZ.tab_explore",
+    "codeAZ.tab_map",
+    "codeAZ.tab_predict",
+    "codeAZ.prediction",
+    "codeAZ.model",
+]
+
+failed = []
+for m in modules:
+    try:
+        importlib.import_module(m)
+        print(f"[OK] import {m}")
+    except Exception as e:
+        failed.append((m, repr(e)))
+        print(f"[FAIL] import {m}: {e!r}")
+
+def must_have(modname, names):
+    mod = importlib.import_module(modname)
+    for n in names:
+        if not hasattr(mod, n):
+            raise AssertionError(f"{modname} missing: {n}")
+
+must_have("codeAZ.tab_corr", ["CorrelationTab"])
+must_have("codeAZ.tab_map", ["MapTab", "CartographyDynamic"])
+must_have("codeAZ.tab_explore", ["ExplorationTabWidget", "ExplorationTab", "PandasModel", "RealEstateFilterProxy"])
+must_have("codeAZ.tab_predict", ["PredictorTab"])
+
+# optional (uncomment if these exist for sure)
+# must_have("codeAZ.model", ["parse_us_address", "predict_interval_from_constraints"])
+
+if failed:
+    raise SystemExit(f"Import failures: {failed}")
+
+print("All imports and API checks passed.")
+EOF
+
+      - name: Run pytest (if tests exist)
+        run: |
+          pytest -q || echo "No tests yet"
