@@ -16,6 +16,9 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: Install OpenMP runtime (needed by xgboost on macOS)
+        run: brew install libomp
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -29,9 +32,9 @@ jobs:
           import matplotlib
           import joblib
           import sklearn
-          import xgboost
           import folium
           import usaddress
           import PySide6
+          import xgboost
           print("All external libraries imported successfully.")
           PY
