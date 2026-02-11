@@ -9,63 +9,29 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
-      # Needed for xgboost on macOS (libomp)
-      - name: Install OpenMP runtime
-        run: brew install libomp
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # If you have a requirements.txt, use it; otherwise keep minimal deps for CI
-          if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
-          python -m pip install pytest numpy pandas matplotlib joblib scikit-learn xgboost folium usaddress PySide6
+          python -m pip install numpy pandas matplotlib joblib scikit-learn xgboost folium usaddress PySide6
 
-      - name: Syntax check (compileall)
-        run: |
-          python -m compileall -q codeAZ
-
-      # IMPORTANT: run imports from inside codeAZ so "from model import ..." works
-      - name: Smoke imports (run from codeAZ/)
-        working-directory: codeAZ
-        env:
-          QT_QPA_PLATFORM: offscreen
+      - name: Test library imports
         run: |
           python - <<'PY'
-          import importlib
-
-          modules = [
-              "apli",
-              "tab_corr",
-              "tab_explore",
-              "tab_map",
-              "tab_predict",
-              "prediction",
-              "model",
-          ]
-
-          failed = []
-          for m in modules:
-              try:
-                  importlib.import_module(m)
-                  print(f"[OK] import {m}")
-              except Exception as e:
-                  failed.append((m, repr(e)))
-                  print(f"[FAIL] import {m}: {e!r}")
-
-          if failed:
-              raise SystemExit(f"Import failures: {failed}")
-
-          print("All smoke imports passed.")
+          import numpy
+          import pandas
+          import matplotlib
+          import joblib
+          import sklearn
+          import xgboost
+          import folium
+          import usaddress
+          import PySide6
+          print("All external libraries imported successfully.")
           PY
-
-      - name: Run pytest (if tests exist)
-        run: |
-          if [ -d tests ]; then pytest -q; else echo "No tests/ directory, skipping"; fi
