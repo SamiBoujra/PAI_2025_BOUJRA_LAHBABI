@@ -1,0 +1,23 @@
+# Core data
+pandas
+numpy
+
+# ML
+scikit-learn
+xgboost
+joblib
+
+# Address parsing
+usaddress
+
+# Visualization
+matplotlib
+folium
+
+# GUI
+PySide6
+PySide6-WebEngine
+
+# Testing
+pytest
+pytest-qt
