@@ -16,7 +16,7 @@ folium
 
 # GUI
 PySide6
-PySide6-WebEngine
+
 
 # Testing
 pytest
