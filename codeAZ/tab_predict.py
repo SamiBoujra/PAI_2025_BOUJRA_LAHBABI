@@ -15,7 +15,7 @@ from PySide6.QtCore import Qt
 # Fonctions "métier" venant de ton module model.py :
 # - parse_us_address : extrait City/State/Zip d'une adresse
 # - predict_interval_from_constraints : retourne un intervalle de prix (low/med/high)
-from model import parse_us_address, predict_interval_from_constraints
+from codeAZ.model import parse_us_address, predict_interval_from_constraints
 
 # ⚠️ Chemins absolus (spécifiques à TON PC) : ça marche chez toi, mais pas sur un autre poste.
 MODEL_PATH = r"C:\Users\pc\Downloads\projet PAI\housing_pipe.joblib"
