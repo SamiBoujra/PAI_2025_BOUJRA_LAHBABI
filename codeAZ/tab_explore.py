@@ -1,5 +1,6 @@
 ﻿# tab_explore.py
 from __future__ import annotations
+# Active des annotations de type modernes (ex: list[str]) de manière robuste.
 
 from pathlib import Path
 from typing import List, Any
@@ -15,41 +16,68 @@ from PySide6.QtWidgets import (
 )
 
 # --------------------------- Config ---------------------------
-from pathlib import Path
+# Chemin par défaut vers le CSV (ici : dossier parent du fichier, puis parent => racine projet)
 DATA_PATH = Path(__file__).resolve().parent.parent / "American_Housing_Data_20231209.csv"
 
+# Liste "attendue" de colonnes : sert à afficher un avertissement si le CSV ne correspond pas.
 EXPECTED_COLUMNS = [
     "Zip Code", "Price", "Beds", "Baths", "Living Space", "Address",
     "City", "State", "Zip Code Population", "Zip Code Density", "County",
     "Median Household Income", "Latitude", "Longitude",
 ]
 
-# --------------------- ModÃ¨le pandas -> Qt --------------------
+# ===================== Modèle pandas -> Qt =====================
 class PandasModel(QAbstractTableModel):
+    """
+    Modèle Qt basé sur un DataFrame pandas.
+    Sert à afficher un DataFrame dans un QTableView.
+
+    Rôle :
+    - rowCount / columnCount : dimension du tableau
+    - data : contenu d’une cellule (formatage)
+    - headerData : noms colonnes + numéros de lignes
+    """
+
     def __init__(self, df: pd.DataFrame):
         super().__init__()
+        # Reset index pour que l’affichage soit propre et continu (0..N-1)
         self._df = df.reset_index(drop=True)
 
     def rowCount(self, parent=QModelIndex()) -> int:
+        # Si parent.isValid() => Qt demande une structure hiérarchique (non utilisée ici)
         return 0 if parent.isValid() else len(self._df)
 
     def columnCount(self, parent=QModelIndex()) -> int:
         return 0 if parent.isValid() else self._df.shape[1]
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> Any:
+        """
+        Fournit la valeur affichée dans la cellule.
+        On formate les int/float pour avoir un affichage "humain" :
+        - int: séparateur milliers
+        - float: 2 décimales (puis on enlève .00)
+        """
         if not index.isValid():
             return None
+
         if role in (Qt.DisplayRole, Qt.EditRole):
             val = self._df.iat[index.row(), index.column()]
+
+            # Format int (ex: 1000000 -> "1 000 000")
             if isinstance(val, (int, np.integer)):
                 return f"{int(val):,}".replace(",", " ")
+
+            # Format float (ex: 1234.5 -> "1 234.50", puis suppression de .00)
             if isinstance(val, (float, np.floating)):
                 s = f"{float(val):,.2f}".replace(",", " ")
                 return s.replace(".00", "")
+
             return str(val)
+
         return None
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole) -> Any:
+        """Affiche les en-têtes : noms des colonnes (horizontal) et numéros de ligne (vertical)."""
         if role != Qt.DisplayRole:
             return None
         if orientation == Qt.Horizontal:
@@ -57,16 +85,26 @@ class PandasModel(QAbstractTableModel):
         return str(section + 1)
 
     def dataframe(self) -> pd.DataFrame:
+        """Accès au DataFrame interne (utile au proxy pour filtrer / exporter)."""
         return self._df
 
 
-# -------------------- Proxy de filtrage Qt --------------------
+# ==================== Proxy de filtrage Qt =====================
 class RealEstateFilterProxy(QSortFilterProxyModel):
+    """
+    Proxy qui filtre les lignes affichées selon plusieurs critères (prix, surface, beds, revenu, ville, état...).
+
+    QSortFilterProxyModel :
+    - Permet de trier et filtrer sans modifier le DataFrame original.
+    - filterAcceptsRow() est appelée pour chaque ligne => True/False.
+    """
+
     def __init__(self):
         super().__init__()
         self.setDynamicSortFilter(True)
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
 
+        # Critères (None = pas de filtre)
         self.min_price = None
         self.max_price = None
         self.min_space = None
@@ -75,11 +113,17 @@ class RealEstateFilterProxy(QSortFilterProxyModel):
         self.max_beds = None
         self.min_income = None
         self.max_income = None
-        self.city_substr = ""
-        self.state_exact = ""
-        self.search_text = ""
+
+        # Critères textuels
+        self.city_substr = ""     # sous-chaîne : "contient"
+        self.state_exact = ""     # égalité exacte
+        self.search_text = ""     # recherche dans Address
 
     def _col(self, name: str) -> int:
+        """
+        Retourne l’index d’une colonne par son nom dans le modèle source.
+        -1 si la colonne n’existe pas.
+        """
         model = self.sourceModel()
         if model is None:
             return -1
@@ -89,17 +133,24 @@ class RealEstateFilterProxy(QSortFilterProxyModel):
             return -1
 
     def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
+        """
+        Logique de filtrage : pour chaque ligne du DataFrame,
+        on applique toutes les conditions.
+        Si une condition échoue => False (ligne masquée).
+        """
         model: PandasModel = self.sourceModel()
         if model is None:
             return True
         df = model.dataframe()
 
+        # Fonction utilitaire : récupérer une valeur par nom de colonne
         def val(col_name):
             col_idx = self._col(col_name)
             if col_idx < 0:
                 return None
             return df.iat[source_row, col_idx]
 
+        # ---------- Filtre prix ----------
         price = val("Price")
         if isinstance(price, (int, float, np.integer, np.floating)):
             if self.min_price is not None and price < self.min_price:
@@ -107,6 +158,7 @@ class RealEstateFilterProxy(QSortFilterProxyModel):
             if self.max_price is not None and price > self.max_price:
                 return False
 
+        # ---------- Filtre surface ----------
         space = val("Living Space")
         if isinstance(space, (int, float, np.integer, np.floating)):
             if self.min_space is not None and space < self.min_space:
@@ -114,6 +166,7 @@ class RealEstateFilterProxy(QSortFilterProxyModel):
             if self.max_space is not None and space > self.max_space:
                 return False
 
+        # ---------- Filtre bedrooms ----------
         beds = val("Beds")
         if isinstance(beds, (int, float, np.integer, np.floating)):
             if self.min_beds is not None and beds < self.min_beds:
@@ -121,6 +174,7 @@ class RealEstateFilterProxy(QSortFilterProxyModel):
             if self.max_beds is not None and beds > self.max_beds:
                 return False
 
+        # ---------- Filtre revenu médian ----------
         income = val("Median Household Income")
         if isinstance(income, (int, float, np.integer, np.floating)):
             if self.min_income is not None and income < self.min_income:
@@ -128,14 +182,17 @@ class RealEstateFilterProxy(QSortFilterProxyModel):
             if self.max_income is not None and income > self.max_income:
                 return False
 
+        # ---------- Filtre ville (contient) ----------
         city = str(val("City") or "")
         if self.city_substr and self.city_substr.lower() not in city.lower():
             return False
 
+        # ---------- Filtre état (exact) ----------
         state = str(val("State") or "")
         if self.state_exact and state != self.state_exact:
             return False
 
+        # ---------- Recherche libre (dans Address) ----------
         address = str(val("Address") or "")
         if self.search_text and self.search_text.lower() not in address.lower():
             return False
@@ -143,71 +200,129 @@ class RealEstateFilterProxy(QSortFilterProxyModel):
         return True
 
 
-# ------------------------ UI Exploration ----------------------
+# ========================= UI Exploration ======================
 class ExplorationTab(QWidget):
+    """
+    Onglet principal "Exploration" :
+    - panneau gauche = filtres
+    - panneau droit = tableau (QTableView)
+    - export CSV des lignes filtrées
+    """
+
     def __init__(self, df: pd.DataFrame):
         super().__init__()
         self.df = df
 
+        # Modèle Qt basé sur le DataFrame
         self.model = PandasModel(self.df)
+
+        # Proxy de filtrage au-dessus du modèle
         self.proxy = RealEstateFilterProxy()
         self.proxy.setSourceModel(self.model)
 
+        # Tableau Qt affichant les données filtrées
         self.table = QTableView()
         self.table.setModel(self.proxy)
-        self.table.setSortingEnabled(True)
+        self.table.setSortingEnabled(True)              # autorise le tri sur en-têtes
         self.table.horizontalHeader().setStretchLastSection(True)
 
+        # Construction UI des filtres (à gauche)
         self._build_filters()
 
+        # Splitter : gauche = filtres / droite = tableau
         splitter = QSplitter()
         left = QWidget()
         left.setLayout(self.filters_layout)
         splitter.addWidget(left)
         splitter.addWidget(self.table)
-        splitter.setSizes([340, 900])
+        splitter.setSizes([340, 900])  # tailles initiales
 
         main_layout = QVBoxLayout()
         main_layout.addWidget(splitter)
         self.setLayout(main_layout)
 
+        # Applique les filtres au démarrage
         self.apply_filters()
 
     def _build_filters(self):
+        """Construit le panneau de filtres (QFormLayout) + boutons."""
         self.filters_layout = QFormLayout()
 
-        self.spin_min_price = QDoubleSpinBox(); self.spin_min_price.setRange(0, 1e9); self.spin_min_price.setPrefix("Min $"); self.spin_min_price.setDecimals(0)
-        self.spin_max_price = QDoubleSpinBox(); self.spin_max_price.setRange(0, 1e9); self.spin_max_price.setPrefix("Max $"); self.spin_max_price.setDecimals(0)
+        # Prix : min/max (en $)
+        self.spin_min_price = QDoubleSpinBox()
+        self.spin_min_price.setRange(0, 1e9)
+        self.spin_min_price.setPrefix("Min $")
+        self.spin_min_price.setDecimals(0)
+
+        self.spin_max_price = QDoubleSpinBox()
+        self.spin_max_price.setRange(0, 1e9)
+        self.spin_max_price.setPrefix("Max $")
+        self.spin_max_price.setDecimals(0)
+
         self.filters_layout.addRow(QLabel("Prix ($) :"), self._row(self.spin_min_price, self.spin_max_price))
 
-        self.spin_min_space = QDoubleSpinBox(); self.spin_min_space.setRange(0, 1e6); self.spin_min_space.setPrefix("Min "); self.spin_min_space.setDecimals(0)
-        self.spin_max_space = QDoubleSpinBox(); self.spin_max_space.setRange(0, 1e6); self.spin_max_space.setPrefix("Max "); self.spin_max_space.setDecimals(0)
-        self.filters_layout.addRow(QLabel("Surface (ftÂ²) :"), self._row(self.spin_min_space, self.spin_max_space))
+        # Surface : min/max (ft²)
+        self.spin_min_space = QDoubleSpinBox()
+        self.spin_min_space.setRange(0, 1e6)
+        self.spin_min_space.setPrefix("Min ")
+        self.spin_min_space.setDecimals(0)
 
-        self.spin_min_beds = QSpinBox(); self.spin_min_beds.setRange(0, 50); self.spin_min_beds.setPrefix("Min ")
-        self.spin_max_beds = QSpinBox(); self.spin_max_beds.setRange(0, 50); self.spin_max_beds.setPrefix("Max ")
+        self.spin_max_space = QDoubleSpinBox()
+        self.spin_max_space.setRange(0, 1e6)
+        self.spin_max_space.setPrefix("Max ")
+        self.spin_max_space.setDecimals(0)
+
+        self.filters_layout.addRow(QLabel("Surface (ft²) :"), self._row(self.spin_min_space, self.spin_max_space))
+
+        # Bedrooms : min/max
+        self.spin_min_beds = QSpinBox()
+        self.spin_min_beds.setRange(0, 50)
+        self.spin_min_beds.setPrefix("Min ")
+
+        self.spin_max_beds = QSpinBox()
+        self.spin_max_beds.setRange(0, 50)
+        self.spin_max_beds.setPrefix("Max ")
+
         self.filters_layout.addRow(QLabel("Chambres (Beds) :"), self._row(self.spin_min_beds, self.spin_max_beds))
 
-        self.spin_min_income = QDoubleSpinBox(); self.spin_min_income.setRange(0, 1e7); self.spin_min_income.setPrefix("Min $"); self.spin_min_income.setDecimals(0)
-        self.spin_max_income = QDoubleSpinBox(); self.spin_max_income.setRange(0, 1e7); self.spin_max_income.setPrefix("Max $"); self.spin_max_income.setDecimals(0)
-        self.filters_layout.addRow(QLabel("Revenu mÃ©dian ($) :"), self._row(self.spin_min_income, self.spin_max_income))
+        # Revenu médian : min/max
+        self.spin_min_income = QDoubleSpinBox()
+        self.spin_min_income.setRange(0, 1e7)
+        self.spin_min_income.setPrefix("Min $")
+        self.spin_min_income.setDecimals(0)
 
-        self.edit_city = QLineEdit(); self.edit_city.setPlaceholderText("Contientâ€¦ (ex: New York)")
+        self.spin_max_income = QDoubleSpinBox()
+        self.spin_max_income.setRange(0, 1e7)
+        self.spin_max_income.setPrefix("Max $")
+        self.spin_max_income.setDecimals(0)
+
+        self.filters_layout.addRow(QLabel("Revenu médian ($) :"), self._row(self.spin_min_income, self.spin_max_income))
+
+        # Ville : filtre "contient"
+        self.edit_city = QLineEdit()
+        self.edit_city.setPlaceholderText("Contient… (ex: New York)")
         self.filters_layout.addRow(QLabel("Ville (contient) :"), self.edit_city)
 
-        self.combo_state = QComboBox(); self.combo_state.addItem("")
+        # Etat : choix exact via combo
+        self.combo_state = QComboBox()
+        self.combo_state.addItem("")  # valeur vide = pas de filtre
+
         if "State" in self.df.columns:
             states = sorted(map(str, self.df["State"].dropna().unique()))
             self.combo_state.addItems(states)
-        self.filters_layout.addRow(QLabel("Ã‰tat (exact) :"), self.combo_state)
 
-        self.edit_search = QLineEdit(); self.edit_search.setPlaceholderText("Recherche dans Addressâ€¦")
+        self.filters_layout.addRow(QLabel("État (exact) :"), self.combo_state)
+
+        # Recherche texte sur Address
+        self.edit_search = QLineEdit()
+        self.edit_search.setPlaceholderText("Recherche dans Address…")
         self.filters_layout.addRow(QLabel("Recherche (Address) :"), self.edit_search)
 
+        # Boutons appliquer / reset
         self.btn_apply = QPushButton("Appliquer les filtres")
         self.btn_apply.clicked.connect(self.apply_filters)
 
-        self.btn_reset = QPushButton("RÃ©initialiser")
+        self.btn_reset = QPushButton("Réinitialiser")
         self.btn_reset.clicked.connect(self.reset_filters)
 
         row_btns = QWidget()
@@ -217,17 +332,21 @@ class ExplorationTab(QWidget):
         h.addWidget(self.btn_reset)
         self.filters_layout.addRow(row_btns)
 
+        # Affichage du nombre de résultats
         self.lbl_count = QLabel("")
-        self.filters_layout.addRow(QLabel("RÃ©sultats :"), self.lbl_count)
+        self.filters_layout.addRow(QLabel("Résultats :"), self.lbl_count)
 
-        self.btn_export = QPushButton("Exporter CSV (filtrÃ©)")
+        # Export CSV filtré
+        self.btn_export = QPushButton("Exporter CSV (filtré)")
         self.btn_export.clicked.connect(self.export_csv)
         self.filters_layout.addRow(self.btn_export)
 
+        # UX : appuyer sur Entrée lance le filtrage
         self.edit_city.returnPressed.connect(self.apply_filters)
         self.edit_search.returnPressed.connect(self.apply_filters)
 
     def _row(self, *widgets) -> QWidget:
+        """Petit helper : place plusieurs widgets sur une même ligne (horizontal)."""
         w = QWidget()
         lay = QHBoxLayout(w)
         lay.setContentsMargins(0, 0, 0, 0)
@@ -236,45 +355,62 @@ class ExplorationTab(QWidget):
         return w
 
     def apply_filters(self):
+        """
+        Récupère les valeurs UI et les copie dans le proxy,
+        puis déclenche invalidateFilter() pour rafraîchir la table.
+        """
+        # Price
         self.proxy.min_price = self.spin_min_price.value() or None
         self.proxy.max_price = self.spin_max_price.value() or None
         if self.proxy.max_price == 0:
             self.proxy.max_price = None
 
+        # Space
         self.proxy.min_space = self.spin_min_space.value() or None
         self.proxy.max_space = self.spin_max_space.value() or None
         if self.proxy.max_space == 0:
             self.proxy.max_space = None
 
+        # Income
         self.proxy.min_income = self.spin_min_income.value() or None
         self.proxy.max_income = self.spin_max_income.value() or None
         if self.proxy.max_income == 0:
             self.proxy.max_income = None
 
+        # Beds
         self.proxy.min_beds = self.spin_min_beds.value() or None
         self.proxy.max_beds = self.spin_max_beds.value() or None
         if self.proxy.max_beds == 0:
             self.proxy.max_beds = None
 
+        # Text filters
         self.proxy.city_substr = self.edit_city.text().strip()
         self.proxy.state_exact = self.combo_state.currentText().strip()
         self.proxy.search_text = self.edit_search.text().strip()
 
+        # Recalcul filtre + maj compteur
         self.proxy.invalidateFilter()
         self.lbl_count.setText(f"{self.proxy.rowCount():,}".replace(",", " "))
 
     def reset_filters(self):
+        """Remet tous les filtres à zéro / vide, puis applique."""
         for w in [self.spin_min_price, self.spin_max_price, self.spin_min_space, self.spin_max_space,
                   self.spin_min_income, self.spin_max_income]:
             w.setValue(0)
         for w in [self.spin_min_beds, self.spin_max_beds]:
             w.setValue(0)
+
         self.edit_city.clear()
         self.combo_state.setCurrentIndex(0)
         self.edit_search.clear()
+
         self.apply_filters()
 
     def _filtered_dataframe(self) -> pd.DataFrame:
+        """
+        Reconstruit un DataFrame correspondant uniquement aux lignes visibles après filtrage.
+        On mappe les index du proxy vers le modèle source.
+        """
         df_all = self.model.dataframe()
         rows: List[int] = []
         for r in range(self.proxy.rowCount()):
@@ -283,18 +419,30 @@ class ExplorationTab(QWidget):
         return df_all.iloc[rows].copy()
 
     def export_csv(self):
-        path, _ = QFileDialog.getSaveFileName(self, "Exporter CSV filtrÃ©", "filtered_exploration.csv", "CSV (*.csv)")
+        """Exporte les résultats filtrés vers un fichier CSV."""
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Exporter CSV filtré",
+            "filtered_exploration.csv",
+            "CSV (*.csv)"
+        )
         if not path:
             return
+
         df_filtered = self._filtered_dataframe()
         try:
             df_filtered.to_csv(path, index=False)
-            QMessageBox.information(self, "Export CSV", f"Export rÃ©ussi vers:\n{path}")
+            QMessageBox.information(self, "Export CSV", f"Export réussi vers:\n{path}")
         except Exception as e:
             QMessageBox.critical(self, "Export CSV", f"Erreur d'export:\n{e}")
 
 
+# ===================== Chargement du CSV =======================
 def load_dataframe(path: Path) -> pd.DataFrame:
+    """
+    Charge le CSV et affiche un avertissement en console si des colonnes attendues manquent.
+    (Ce n’est pas bloquant : l’appli peut fonctionner avec un sous-ensemble.)
+    """
     df = pd.read_csv(path)
     missing = [c for c in EXPECTED_COLUMNS if c not in df.columns]
     if missing:
@@ -304,8 +452,11 @@ def load_dataframe(path: Path) -> pd.DataFrame:
 
 class ExplorationTabWidget(QWidget):
     """
-    Wrapper 'onglet' qui charge le CSV par dÃ©faut.
-    Dans main.py tu importes ExplorationTabWidget et tu fais tabs.addTab(ExplorationTabWidget(), "Exploration")
+    Wrapper simple qui charge le CSV par défaut et instancie ExplorationTab(df).
+
+    Dans main.py :
+        from tab_explore import ExplorationTabWidget
+        tabs.addTab(ExplorationTabWidget(), "Exploration")
     """
     def __init__(self):
         super().__init__()

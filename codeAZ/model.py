@@ -1,25 +1,43 @@
-﻿import pandas as pd
+﻿# ==============================
+# IMPORTS
+# ==============================
+
+import pandas as pd
 import numpy as np
 
+# Sklearn utilities for ML pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
+# XGBoost regression model
 from xgboost import XGBRegressor
-import numpy as np
-import pandas as pd
 
+# Address parsing tools
 import re
 import usaddress
 
+# ==============================
+# ADDRESS PARSING FUNCTION
+# ==============================
+
 def parse_us_address(addr: str) -> dict:
+    """
+    Parses a US address string and extracts:
+    - City
+    - State
+    - Zip Code
+    """
+
     addr = addr.strip()
-    # remove trailing country text if present
-    addr = re.sub(r",\s*Ã‰tats-Unis\s*$", "", addr, flags=re.IGNORECASE)
+
+    # Remove trailing country mention if present
+    addr = re.sub(r",\s*États-Unis\s*$", "", addr, flags=re.IGNORECASE)
     addr = re.sub(r",\s*United States\s*$", "", addr, flags=re.IGNORECASE)
 
+    # Use usaddress library to tag components
     tagged, _ = usaddress.tag(addr)
 
     city = tagged.get("PlaceName", "")
@@ -32,93 +50,127 @@ def parse_us_address(addr: str) -> dict:
         "Zip Code": zip_code
     }
 
+# ==============================
+# PREDICTION INTERVAL FUNCTION
+# ==============================
+
 def predict_interval_from_constraints(
     pipe,
     df_train: pd.DataFrame,
     feature_cols: list[str],
     constraints: dict,
     n_samples: int = 1000,
-    alpha: float = 0.20,   # 0.20 => 80% interval (10%-90%)
+    alpha: float = 0.20,   # 80% confidence interval
     use_log: bool = True,
     random_state: int = 42
 ):
     """
-    Returns (p_low, p_med, p_high, n_used).
-    constraints example: {"City":"Portland", "State":"Oregon", "Beds":4}
+    Returns:
+        (low_price, median_price, high_price, n_rows_used)
+
+    Idea:
+    - Filter training data based on user constraints
+    - Sample realistic rows
+    - Predict a distribution
+    - Compute quantiles
     """
+
     rng = np.random.default_rng(random_state)
 
-    # 1) Filter training rows that match constraints (only for columns present)
+    # 1️⃣ Filter rows matching constraints
     df_f = df_train.copy()
+
     for k, v in constraints.items():
         if k not in df_f.columns:
             continue
+
         if v is None or (isinstance(v, str) and v.strip() == ""):
             continue
 
+        # Numeric exact match
         if isinstance(v, (int, float, np.integer, np.floating)):
-            # numeric exact match by default; you can change to ranges if you want
             df_f = df_f[df_f[k].notna()]
             df_f = df_f[df_f[k] == v]
         else:
             df_f = df_f[df_f[k].astype(str) == str(v)]
 
-    # If filtering got too strict, back off (use all training data)
+    # If too few rows, fallback to full dataset
     if len(df_f) < 50:
         df_f = df_train.copy()
 
-    # 2) Sample plausible complete rows
+    # 2️⃣ Sample plausible houses
     take = min(n_samples, len(df_f))
-    sampled = df_f.sample(n=take, replace=(take < n_samples), random_state=random_state)
+    sampled = df_f.sample(
+        n=take,
+        replace=(take < n_samples),
+        random_state=random_state
+    )
 
-    # 3) Build X inputs; overwrite known constraints so they are fixed
+    # 3️⃣ Build simulated input matrix
     X_sim = sampled[feature_cols].copy()
+
+    # Force constraint values
     for k, v in constraints.items():
-        if k in X_sim.columns and v is not None and not (isinstance(v, str) and v.strip() == ""):
+        if k in X_sim.columns and v is not None:
             X_sim[k] = v
 
-    # 4) Predict distribution
+    # 4️⃣ Predict distribution
     preds = pipe.predict(X_sim)
 
-    # 5) Undo log if needed
+    # 5️⃣ Convert back from log if needed
     if use_log:
         preds = np.expm1(preds)
 
+    # Compute interval
     low = float(np.quantile(preds, alpha/2))
     med = float(np.quantile(preds, 0.5))
     high = float(np.quantile(preds, 1 - alpha/2))
+
     return low, med, high, len(df_f)
 
 
-# 1) Charger
-from pathlib import Path
-DATA_PATH = Path(__file__).resolve().parent.parent / "American_Housing_Data_20231209.csv"
-df = pd.read_csv(DATA_PATH)
+# ==============================
+# DATA LOADING
+# ==============================
 
-# 2) Nettoyage minimal
+from pathlib import Path
+
+DATA_PATH = Path(__file__).resolve().parent.parent / "American_Housing_Data_20231209.csv"
+
+df = pd.read_csv(DATA_PATH)
 df = df.copy()
 
-# Nettoyer Zip Code si format "97 229"
+# ==============================
+# BASIC CLEANING
+# ==============================
+
+# Clean Zip Code formatting
 if "Zip Code" in df.columns:
     df["Zip Code"] = (
-        df["Zip Code"].astype(str)
+        df["Zip Code"]
+        .astype(str)
         .str.replace(" ", "", regex=False)
         .str.replace(r"\.0$", "", regex=True)
     )
 
-# Convertir colonnes numÃ©riques possibles (adapte si besoin)
+# Convert numeric columns
 for col in ["Price", "Beds", "Baths", "Living Space", "Zip Code Population"]:
     if col in df.columns:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
-# Garder lignes valides
+# Remove incomplete rows
 df = df.dropna(subset=["Price", "Beds", "Baths", "Living Space", "City", "State"])
 
-# 3) Features / Target
+
+# ==============================
+# FEATURE ENGINEERING
+# ==============================
+
 target = "Price"
+
 feature_cols = ["Beds", "Baths", "Living Space", "City", "State"]
 
-# Optionnel : ajouter Zip Code / population si prÃ©sents
+# Optional features
 if "Zip Code" in df.columns:
     feature_cols.append("Zip Code")
 if "Zip Code Population" in df.columns:
@@ -127,13 +179,19 @@ if "Zip Code Population" in df.columns:
 X = df[feature_cols]
 y = df[target]
 
-# (Option trÃ¨s recommandÃ©e) prÃ©dire log(prix)
+# Use log transformation (recommended for prices)
 use_log = True
 if use_log:
     y = np.log1p(y)
 
-# 4) Colonnes numÃ©riques / catÃ©gorielles
-num_cols = [c for c in feature_cols if c in ["Beds", "Baths", "Living Space", "Zip Code Population"]]
+
+# ==============================
+# PREPROCESSING PIPELINE
+# ==============================
+
+num_cols = [c for c in feature_cols
+            if c in ["Beds", "Baths", "Living Space", "Zip Code Population"]]
+
 cat_cols = [c for c in feature_cols if c not in num_cols]
 
 preprocess = ColumnTransformer(
@@ -143,7 +201,11 @@ preprocess = ColumnTransformer(
     ]
 )
 
-# 5) ModÃ¨le XGBoost
+
+# ==============================
+# MODEL DEFINITION
+# ==============================
+
 model = XGBRegressor(
     n_estimators=800,
     learning_rate=0.05,
@@ -161,18 +223,32 @@ pipe = Pipeline(steps=[
     ("model", model)
 ])
 
-# 6) Split
+
+# ==============================
+# TRAIN / TEST SPLIT
+# ==============================
+
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
+    X, y,
+    test_size=0.2,
+    random_state=42
 )
 
-# 7) EntraÃ®ner
+
+# ==============================
+# TRAIN MODEL
+# ==============================
+
 pipe.fit(X_train, y_train)
 
-# 8) PrÃ©dire
+
+# ==============================
+# EVALUATION
+# ==============================
+
 pred = pipe.predict(X_test)
 
-# Revenir en dollars si log
+# Convert back from log scale
 if use_log:
     y_test_d = np.expm1(y_test)
     pred_d = np.expm1(pred)
@@ -180,40 +256,57 @@ else:
     y_test_d = y_test
     pred_d = pred
 
-# 9) Ã‰valuer
 mae = mean_absolute_error(y_test_d, pred_d)
-mse = mean_squared_error(y_test_d, pred_d)
-rmse = np.sqrt(mse)
+rmse = np.sqrt(mean_squared_error(y_test_d, pred_d))
 r2 = r2_score(y_test_d, pred_d)
 
 print(f"MAE  : {mae:,.0f} $")
 print(f"RMSE : {rmse:,.0f} $")
-print(f"RÂ²   : {r2:.3f}")
+print(f"R²   : {r2:.3f}")
 
-addr = "100 W 2nd St, Boston, MA 02127, Ã‰tats-Unis"
-info = parse_us_address(addr)  # or parse_us_address(addr)
+
+# ==============================
+# EXAMPLE PREDICTIONS
+# ==============================
+
+# Parse address
+addr = "100 W 2nd St, Boston, MA 02127, États-Unis"
+info = parse_us_address(addr)
 
 constraints = {
     "City": info["City"],
     "State": info["State"],
     "Zip Code": info["Zip Code"],
-
-    # optional extra info (if the user provides later)
-    # "Beds": 3,
-    # "Baths": 2,
-    # "Living Space": 1400,
 }
-print(constraints)
-low, med, high, n_used = predict_interval_from_constraints(pipe, df, feature_cols, constraints)
+
+low, med, high, n_used = predict_interval_from_constraints(
+    pipe, df, feature_cols, constraints
+)
+
 print(low, med, high, "based on", n_used, "matching rows")
 
-constraints = {"City": "Portland", "State": "Oregon", "Beds": 4, "Baths": 3}  # stronger -> narrower
-low, med, high, n_used = predict_interval_from_constraints(pipe, df, feature_cols, constraints)
+
+# Stronger constraints -> narrower interval
+constraints = {
+    "City": "Portland",
+    "State": "Oregon",
+    "Beds": 4,
+    "Baths": 3
+}
+
+low, med, high, n_used = predict_interval_from_constraints(
+    pipe, df, feature_cols, constraints
+)
+
 print(low, med, high, "based on", n_used, "matching rows")
+
+
+# ==============================
+# SAVE MODEL
+# ==============================
 
 import joblib
 
-from pathlib import Path
 MODEL_PATH = Path(__file__).resolve().parent.parent / "housing_pipe.joblib"
 
 joblib.dump(
