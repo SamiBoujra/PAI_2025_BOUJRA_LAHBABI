@@ -11,10 +11,10 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QMessageBox
 # - QMessageBox: used to display error messages
 
 # Import the 4 tabs (each tab is defined in its own file)
-from tab_predict import PredictorTab
-from tab_corr import CorrelationTab
-from tab_map import MapTab
-from tab_explore import ExplorationTabWidget
+from codeAZ.tab_predict import PredictorTab
+from codeAZ.tab_corr import CorrelationTab
+from codeAZ.tab_map import MapTab
+from codeAZ.tab_explore import ExplorationTabWidget
 
 
 class MainWindow(QMainWindow):
