@@ -1,4 +1,4 @@
-# 🏙️ US Real Estate Dashboard — PAI 2025–2026
+#  US Real Estate Dashboard — PAI 2025–2026
 
 [![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python)](#)
 [![PySide6](https://img.shields.io/badge/UI-PySide6-green)](#)
@@ -11,21 +11,21 @@
 
 ---
 
-## 📌 Overview
+##  Overview
 
 This project is a **desktop data analysis application** built with **PySide6 (Qt)** that allows interactive exploration and prediction of real estate prices across major U.S. cities.
 
 It combines:
 
-- 📊 Data analysis  
-- 🗺️ Geospatial visualization  
-- 📈 Statistical correlation analysis  
-- 🤖 Machine learning price prediction  
-- ✅ Continuous Integration with automated testing  
+-  Data analysis  
+-  Geospatial visualization  
+-  Statistical correlation analysis  
+-  Machine learning price prediction  
+-  Continuous Integration with automated testing  
 
 ---
 
-## 📊 Dataset
+##  Dataset
 
 - **Source:** Kaggle – American House Prices & Demographics  
 - **Format:** CSV  
@@ -41,9 +41,9 @@ The dataset is stored locally and loaded at runtime.
 
 ---
 
-## 🧠 Features
+##  Features
 
-### 🔎 Exploration Tab
+###  Exploration Tab
 - Dynamic filtering by:
   - Price range
   - Beds
@@ -56,7 +56,7 @@ The dataset is stored locally and loaded at runtime.
 
 ---
 
-### 🗺️ Cartography Tab
+###  Cartography Tab
 - Interactive map using **Folium**
 - Fast marker clustering
 - Live filtering
@@ -68,7 +68,7 @@ The dataset is stored locally and loaded at runtime.
 
 ---
 
-### 📈 Correlation Tab
+###  Correlation Tab
 - Pearson correlation computation
 - Scatter plot visualization
 - Sampling support
@@ -79,7 +79,7 @@ The dataset is stored locally and loaded at runtime.
 
 ---
 
-### 🤖 Prediction Tab
+###  Prediction Tab
 - Address parsing via `usaddress`
 - ML model trained with:
   - XGBoost
@@ -91,7 +91,7 @@ The dataset is stored locally and loaded at runtime.
 
 ---
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |--------|------------|
@@ -106,16 +106,16 @@ The dataset is stored locally and loaded at runtime.
 
 ---
 
-## 🚀 Installation
+##  Installation
 
-### 1️⃣ Clone repository
+### 1️ Clone repository
 
 ```bash
 git clone https://github.com/your-username/PAI_2025_BOUJRA_LAHBABI.git
 cd PAI_2025_BOUJRA_LAHBABI
 ```
 
-### 2️⃣ Create virtual environment
+### 2️ Create virtual environment
 
 ```bash
 python -m venv .venv
@@ -123,13 +123,13 @@ source .venv/bin/activate      # Mac/Linux
 .venv\Scripts\activate         # Windows
 ```
 
-### 3️⃣ Install dependencies
+### 3️ Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4️⃣ Run application
+### 4️ Run application
 
 ```bash
 python codeAZ/apli.py
@@ -137,7 +137,7 @@ python codeAZ/apli.py
 
 ---
 
-## 🧪 Testing
+##  Testing
 
 Run locally:
 
@@ -158,7 +158,7 @@ Workflow file:
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 PROJET PAI/
@@ -184,7 +184,7 @@ PROJET PAI/
 
 ---
 
-## 📈 Machine Learning
+##  Machine Learning
 
 Model:
 - `XGBRegressor`
@@ -204,7 +204,7 @@ housing_pipe.joblib
 
 ---
 
-## 🔒 Continuous Integration
+##  Continuous Integration
 
 CI ensures:
 
@@ -219,19 +219,13 @@ Runs on:
 
 ---
 
-## 👥 Authors
+##  Authors
 
 | Name | Role |
 |------|------|
 | Sami BOUJRA | Data & Visualization |
 | Khalid LAHBABI | Machine Learning & Integration |
 
----
 
-## 📜 License
-
-MIT License
-
----
 
 > PAI 2025–2026 — Real Estate Data Analysis Dashboard
