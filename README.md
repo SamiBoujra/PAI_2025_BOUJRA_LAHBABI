@@ -1,214 +1,237 @@
-Perfect ✅ — here’s a **ready-to-upload `README.md`** file formatted specifically for **GitHub**, with badges, table of contents, screenshots placeholders, and clean Markdown style.
-It matches your *PAI 2025–2026* project: *Application de visualisation et d’analyse des prix immobiliers dans les grandes villes américaines*.
+# 🏙️ US Real Estate Dashboard — PAI 2025–2026
 
----
+[![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python)](#)
+[![PySide6](https://img.shields.io/badge/UI-PySide6-green)](#)
+[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-success)](#)
+[![Tests](https://img.shields.io/badge/Tested%20with-pytest-orange)](#)
 
-````markdown
-# 🏙️ USCities House Prices — PAI 2025-2026
-
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](#)
-[![Streamlit](https://img.shields.io/badge/Built%20with-Streamlit-red?logo=streamlit)](#)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
-
-> **Authors:** [Sami BOUJRA](#) · [Khalid LAHBABI](#)  
+> **Authors:** Sami BOUJRA · Khalid LAHBABI  
 > **Project:** PAI 2025–2026  
-> **Title:** *Application de visualisation et d’analyse des prix immobiliers dans les grandes villes américaines*
+> **Title:** Application de visualisation et d’analyse des prix immobiliers dans les grandes villes américaines
 
 ---
 
-## 📚 Table of Contents
-- [🎯 Overview](#-overview)
-- [🗂 Dataset](#-dataset)
-- [✨ Features](#-features)
-- [🧰 Tech Stack](#-tech-stack)
-- [🚀 Installation](#-installation)
-- [🏃‍♂️ Usage](#-usage)
-- [📊 App Structure](#-app-structure)
-- [⚙️ Configuration](#️-configuration)
-- [📈 Machine Learning Module](#-machine-learning-module)
-- [📦 Repository Layout](#-repository-layout)
-- [👥 Authors](#-authors)
-- [📝 License](#-license)
+## 📌 Overview
+
+This project is a **desktop data analysis application** built with **PySide6 (Qt)** that allows interactive exploration and prediction of real estate prices across major U.S. cities.
+
+It combines:
+
+- 📊 Data analysis  
+- 🗺️ Geospatial visualization  
+- 📈 Statistical correlation analysis  
+- 🤖 Machine learning price prediction  
+- ✅ Continuous Integration with automated testing  
 
 ---
 
-## 🎯 Overview
+## 📊 Dataset
 
-This project is an **interactive data visualization and analysis web app** that explores the **real estate market** in the **50 largest U.S. cities**.  
-It integrates **data science**, **geospatial visualization**, and **machine learning** to study how factors like **median income, population density**, and **city size** affect **house prices**.
-
-🧠 **Goal:** Provide a user-friendly tool to visualize housing trends and predict property values based on key features.
-
----
-
-## 🗂 Dataset
-
-- **Source:** [Kaggle – American House Prices and Demographics of Top Cities](https://www.kaggle.com/datasets/jeremylarcher/american-house-prices-and-demographics-of-top-cities)
+- **Source:** Kaggle – American House Prices & Demographics  
 - **Format:** CSV  
-- **Scope:** 50 major U.S. cities  
-- **Records:** Several thousand entries  
-- **Attributes:**
-  - `Zip Code`, `City`, `State`, `County`
-  - `Price`, `Beds`, `Baths`, `Living Space`
-  - `Median Income`, `Population`, `Density`
-  - `Latitude`, `Longitude`
+- **Attributes include:**
+  - City, State, Zip Code  
+  - Price  
+  - Beds / Baths  
+  - Living Space  
+  - Median Household Income  
+  - Latitude / Longitude  
+
+The dataset is stored locally and loaded at runtime.
 
 ---
 
-## ✨ Features
+## 🧠 Features
 
-| Module | Description |
-|:--|:--|
-| **Exploration** | Filter and sort property listings by price, area, rooms, city, or income. |
-| **Cartography** | Interactive map of properties using Folium or Leafmap. |
-| **Correlations** | Visualize relationships (e.g. price vs income) with scatterplots & heatmaps. |
-| **Prediction** | Estimate property price using a trained ML model. |
-| **Statistics** | View summary indicators by city or ZIP. |
-| **Export** | Download filtered data or charts (CSV, PNG). |
+### 🔎 Exploration Tab
+- Dynamic filtering by:
+  - Price range
+  - Beds
+  - Living space
+  - City
+  - State
+  - Median income
+- Sortable table view
+- CSV export of filtered results
 
 ---
 
-## 🧰 Tech Stack
+### 🗺️ Cartography Tab
+- Interactive map using **Folium**
+- Fast marker clustering
+- Live filtering
+- Displays:
+  - Address
+  - Price
+  - Beds / Baths
+  - Living Space
 
-| Layer | Tools |
-|:--|:--|
-| **Frontend / App** | Streamlit, Plotly, Folium / Leafmap |
-| **Data Handling** | Pandas, NumPy, GeoPandas |
-| **Machine Learning** | Scikit-learn (Random Forest baseline) |
-| **Visualization** | Plotly Express, Matplotlib |
-| **Environment** | Python 3.10+, `.env` for configuration |
+---
+
+### 📈 Correlation Tab
+- Pearson correlation computation
+- Scatter plot visualization
+- Sampling support
+- Summary statistics:
+  - Mean price by city
+  - Mean price by ZIP
+  - Mean price by income bracket
+
+---
+
+### 🤖 Prediction Tab
+- Address parsing via `usaddress`
+- ML model trained with:
+  - XGBoost
+  - Scikit-learn pipeline
+- Returns:
+  - Median predicted price
+  - 80% prediction interval
+  - Number of comparable rows used
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|--------|------------|
+| UI | PySide6 (Qt) |
+| Data | Pandas, NumPy |
+| ML | Scikit-learn, XGBoost |
+| Mapping | Folium |
+| Visualization | Matplotlib |
+| Address Parsing | usaddress |
+| Testing | pytest, pytest-qt |
+| CI | GitHub Actions |
 
 ---
 
 ## 🚀 Installation
 
+### 1️⃣ Clone repository
+
 ```bash
-# 1. Clone the repository
-git clone https://github.com/yourusername/USCities-HousePrices.git
-cd USCities-HousePrices
+git clone https://github.com/your-username/PAI_2025_BOUJRA_LAHBABI.git
+cd PAI_2025_BOUJRA_LAHBABI
+```
 
-# 2. Create and activate a virtual environment
+### 2️⃣ Create virtual environment
+
+```bash
 python -m venv .venv
-source .venv/bin/activate  # (Windows: .venv\Scripts\activate)
+source .venv/bin/activate      # Mac/Linux
+.venv\Scripts\activate         # Windows
+```
 
-# 3. Install dependencies
+### 3️⃣ Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-# 4. Prepare data
-mkdir -p data/raw
-# Put the Kaggle dataset at: data/raw/american_house_prices.csv
+### 4️⃣ Run application
 
-# 5. (Optional) Train your model
-python src/train.py
-
-# 6. Launch the app 🚀
-streamlit run app.py
-````
-
----
-
-## 🏃‍♂️ Usage
-
-* Access the app in your browser (default: [localhost:8501](http://localhost:8501))
-* Use the sidebar to **filter** results dynamically
-* Switch between tabs:
-  🧾 *Exploration* → 🗺️ *Cartography* → 📈 *Correlations* → 💰 *Prediction*
-* Export filtered data or charts (CSV/PNG)
-
-> **Tip:** Enable Streamlit caching for faster performance on large datasets.
-
----
-
-## 📊 App Structure
-
-| Tab              | Core Functions                                |
-| :--------------- | :-------------------------------------------- |
-| **Exploration**  | View and filter properties, see summary stats |
-| **Cartography**  | Map visualization by latitude/longitude       |
-| **Correlations** | Explore trends & relationships                |
-| **Prediction**   | Input property details → Get estimated price  |
-
----
-
-## ⚙️ Configuration
-
-**`.env` Example:**
-
-```ini
-DATA_RAW=data/raw/american_house_prices.csv
-DATA_PROCESSED=data/processed/merged.parquet
-MODEL_PATH=data/models/price_model.pkl
-APP_TITLE=USCities House Prices (PAI 2025-2026)
+```bash
+python codeAZ/apli.py
 ```
 
 ---
 
-## 📈 Machine Learning Module
+## 🧪 Testing
 
-* Model: `RandomForestRegressor` (Scikit-learn)
-* Input features:
+Run locally:
 
-  * `beds`, `baths`, `living_space`, `median_income`, `density`, `population`
-* Target: `price`
-* Evaluation: R² and MAE
-* Model is saved at `data/models/price_model.pkl`
+```bash
+python -m pytest
+```
+
+CI automatically runs tests on:
+
+- Push  
+- Pull Request  
+
+Workflow file:
+
+```
+.github/workflows/CI.yaml
+```
 
 ---
 
-## 📦 Repository Layout
+## 📂 Project Structure
 
 ```
-.
-├── app.py
+PROJET PAI/
+│
+├── codeAZ/
+│   ├── model.py
+│   ├── tab_corr.py
+│   ├── tab_explore.py
+│   ├── tab_map.py
+│   ├── tab_predict.py
+│   └── apli.py
+│
+├── tests/
+│   ├── test_helpers.py
+│   ├── test_find_col.py
+│   ├── test_map_filter.py
+│   └── conftest.py
+│
 ├── requirements.txt
-├── .env.example
 ├── README.md
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── models/
-└── src/
-    ├── data_io.py
-    ├── filtering.py
-    ├── viz.py
-    ├── ml.py
-    ├── export_utils.py
-    └── train.py
+└── .github/workflows/CI.yaml
 ```
 
 ---
 
-## 🖼️ Screenshots
+## 📈 Machine Learning
 
-> *(Add your screenshots here once the app runs!)*
->
-> **Example:**
-> ![Exploration Tab](assets/screenshot_exploration.png)
-> ![Map View](assets/screenshot_map.png)
+Model:
+- `XGBRegressor`
+- Log-price transformation
+- Prediction interval via bootstrapped sampling
+
+Metrics:
+- MAE
+- RMSE
+- R²
+
+Model saved as:
+
+```
+housing_pipe.joblib
+```
+
+---
+
+## 🔒 Continuous Integration
+
+CI ensures:
+
+- All modules import correctly  
+- Filtering logic behaves correctly  
+- Helper functions validate input properly  
+- Map filtering works in headless Qt mode  
+
+Runs on:
+- Ubuntu  
+- Python 3.13  
 
 ---
 
 ## 👥 Authors
 
-| Name               | Role                           |
-| :----------------- | :----------------------------- |
-| **Sami BOUJRA**    | Data & Visualization           |
-| **Khalid LAHBABI** | Machine Learning & Integration |
+| Name | Role |
+|------|------|
+| Sami BOUJRA | Data & Visualization |
+| Khalid LAHBABI | Machine Learning & Integration |
 
 ---
 
-## 📝 License
+## 📜 License
 
-This project is distributed under the **MIT License**.
-You are free to use, modify, and share with attribution.
-
----
-
-> *PAI 2025-2026 – Application de visualisation et d’analyse des prix immobiliers dans les grandes villes américaines*
-
-```
+MIT License
 
 ---
 
-Would you like me to **generate the matching `requirements.txt`** and a **preview badge banner** (with your names and project title for GitHub’s top header)? It makes the repository look much more professional.
-```
+> PAI 2025–2026 — Real Estate Data Analysis Dashboard
